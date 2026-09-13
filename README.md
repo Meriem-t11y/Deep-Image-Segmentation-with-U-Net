@@ -294,5 +294,5 @@ Possible extensions include:
 
 **Meriem Tafraoui**
 
-AI Engineering Student
-Computer Vision • Deep Learning • Artificial Intelligence
+AI Engineering Student 
+• Computer Vision • Deep Learning • Artificial Intelligence  • machine learning
