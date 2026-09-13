@@ -1,130 +1,225 @@
 # Deep Image Segmentation with U-Net
 
-A deep learning project focused on semantic image segmentation using a U-Net architecture. The project investigates the effect of loss functions and data augmentation on segmentation performance and includes quantitative evaluation and qualitative error analysis.
+<p align="center">
+  <b>Semantic Image Segmentation • PyTorch • U-Net • Computer Vision</b>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.x-blue?logo=python&logoColor=white">
+  <img src="https://img.shields.io/badge/PyTorch-Deep%20Learning-ee4c2c?logo=pytorch&logoColor=white">
+  <img src="https://img.shields.io/badge/Torchvision-Computer%20Vision-orange">
+  <img src="https://img.shields.io/badge/NumPy-Data%20Processing-013243?logo=numpy&logoColor=white">
+  <img src="https://img.shields.io/badge/Matplotlib-Visualization-11557c">
+</p>
 
 ## Overview
 
-Image segmentation requires a model to assign a class to each pixel of an image. In this project, a U-Net model is trained to segment pets from their background using the Oxford-IIIT Pet dataset.
+This project explores **semantic image segmentation** using a U-Net architecture implemented with PyTorch.
 
-The project focuses on three main aspects:
+The objective is to segment pets from their surrounding background at the pixel level using the **Oxford-IIIT Pet Dataset**.
 
-* Building a U-Net segmentation model with PyTorch
-* Evaluating different training strategies using Dice and IoU
-* Analyzing segmentation errors through qualitative predictions
+Rather than focusing only on model training, the project investigates how different training strategies affect segmentation performance through quantitative evaluation and qualitative error analysis.
+
+### Key Focus
+
+* U-Net implementation from scratch
+* Pixel-level semantic segmentation
+* BCE and Dice-based optimization
+* Data augmentation
+* Dice and IoU evaluation
+* Qualitative prediction analysis
+* Error analysis on difficult samples
+
+---
 
 ## Dataset
 
-**Oxford-IIIT Pet Dataset**
+### Oxford-IIIT Pet
 
-The dataset contains images of cats and dogs together with pixel-level segmentation annotations.
+The Oxford-IIIT Pet Dataset contains images of cats and dogs together with pixel-level segmentation annotations.
 
-For this project:
+**Dataset configuration**
 
-* 80% of the data was used for training
-* 20% was used for validation
-* Images were resized to `256 × 256`
-* Masks were resized using nearest-neighbor interpolation to preserve label values
+| Property          | Configuration           |
+| ----------------- | ----------------------- |
+| Dataset           | Oxford-IIIT Pet         |
+| Task              | Semantic Segmentation   |
+| Training split    | 80%                     |
+| Validation split  | 20%                     |
+| Input resolution  | 256 × 256               |
+| Number of classes | Foreground / Background |
 
-## Methodology
+Images were resized using bilinear interpolation, while segmentation masks were resized using nearest-neighbor interpolation to preserve their discrete labels.
 
-### U-Net Architecture
+---
 
-The segmentation model is a U-Net consisting of:
+## Model Architecture
 
-* Encoder for extracting spatial features
-* Bottleneck for high-level representation
-* Decoder for recovering spatial resolution
-* Skip connections between encoder and decoder layers
-* Final convolution layer producing the segmentation mask
+The segmentation model is a custom **U-Net** implemented in PyTorch.
 
-The model was implemented from scratch using PyTorch.
+```text
+                    U-Net
+
+Input Image
+     │
+     ▼
+┌─────────────┐
+│   Encoder   │
+└──────┬──────┘
+       │
+       │ Skip Connections
+       ▼
+┌─────────────┐
+│ Bottleneck  │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────┐
+│   Decoder   │
+└──────┬──────┘
+       │
+       ▼
+Segmentation Mask
+```
+
+The network contains:
+
+* Convolutional encoder blocks
+* Max-pooling layers
+* Bottleneck representation
+* Transposed convolutions for upsampling
+* Skip connections
+* Convolutional segmentation head
+
+Skip connections allow the decoder to recover spatial information lost during downsampling.
+
+---
+
+## Training Strategy
+
+The project investigates the effect of different training configurations.
 
 ### Loss Function
 
-The main training objective combines:
-
-* Binary Cross-Entropy (BCE)
-* Dice Loss
-
-The combined objective is:
+The main segmentation objective combines:
 
 ```text
 Loss = BCE Loss + Dice Loss
 ```
 
-BCE provides pixel-level supervision, while Dice Loss directly encourages better overlap between predicted and ground-truth segmentation masks.
+**Binary Cross-Entropy** provides pixel-level supervision, while **Dice Loss** encourages better overlap between predicted and ground-truth regions.
 
 ### Data Augmentation
 
-To improve generalization, training images were randomly augmented using:
+The final experiment uses random:
 
 * Horizontal flipping
 * Vertical flipping
 
-The validation set was kept unchanged to ensure a consistent evaluation protocol.
+Augmentation is applied only during training.
+
+---
 
 ## Experiments
 
 ### Experiment 1 — BCE-only Baseline
 
-The first experiment trained the U-Net using only Binary Cross-Entropy.
+A U-Net model was trained using only Binary Cross-Entropy.
 
-| Metric          |  Score |
+| Metric          | Result |
 | --------------- | -----: |
 | Validation Dice | 0.0383 |
 | Validation IoU  | 0.0224 |
 
-The very low segmentation scores indicate that BCE alone was not sufficient for obtaining good foreground-background overlap in this experiment.
+The very low overlap scores indicate that BCE-only training was not effective for this segmentation setup.
 
-### Experiment 2 — BCE + Dice + Data Augmentation
+---
 
-The final configuration combined BCE and Dice Loss with data augmentation.
+### Experiment 2 — BCE + Dice + Augmentation
 
-| Metric          |      Score |
+The final configuration combines:
+
+```text
+U-Net
++
+BCE Loss
++
+Dice Loss
++
+Data Augmentation
+```
+
+Results:
+
+| Metric          |     Result |
 | --------------- | ---------: |
 | Validation Dice | **0.6571** |
 | Validation IoU  | **0.5057** |
 
-Compared with the BCE-only experiment, the final configuration produced a substantial improvement in both segmentation metrics.
-
-## Results
+### Final Comparison
 
 | Configuration             |       Dice |        IoU |
 | ------------------------- | ---------: | ---------: |
 | BCE-only                  |     0.0383 |     0.0224 |
 | BCE + Dice + Augmentation | **0.6571** | **0.5057** |
 
-The results demonstrate the importance of selecting an appropriate segmentation objective and improving training diversity through augmentation.
+The final configuration substantially improved segmentation overlap compared with the BCE-only baseline.
 
-## Error Analysis
-
-Beyond numerical evaluation, qualitative predictions were examined using:
-
-* Original image
-* Ground-truth segmentation mask
-* Predicted segmentation mask
-
-The worst predictions were identified according to their Dice scores. This provides insight into cases where the model struggles with object boundaries, shape variations, or complex visual backgrounds.
+---
 
 ## Qualitative Results
 
-Example predictions are included in the `results/` directory.
-
-Each visualization compares:
+The model predictions are evaluated visually by comparing:
 
 ```text
-Original Image | Ground Truth | Prediction
+Original Image → Ground Truth → Prediction
 ```
 
-Additional examples focus on low-Dice predictions for error analysis.
+Example predictions and difficult cases are provided in the `results/` directory.
+
+### Prediction Examples
+
+![Segmentation Predictions](results/predictions.png)
+
+### Error Analysis
+
+The model's difficult cases were identified according to their Dice scores.
+
+![Error Analysis](results/error_analysis.png)
+
+This analysis helps identify cases where segmentation quality decreases because of challenging object shapes, boundaries, or background conditions.
+
+---
+
+## Evaluation Metrics
+
+### Dice Score
+
+Dice measures the overlap between the predicted segmentation and the ground-truth mask.
+
+Higher values indicate better segmentation overlap.
+
+### Intersection over Union
+
+IoU measures the ratio between the intersection and union of the predicted and ground-truth regions.
+
+Higher values indicate better segmentation quality.
+
+---
 
 ## Technologies
 
-* Python
-* PyTorch
-* Torchvision
-* NumPy
-* Matplotlib
+| Category            | Tools           |
+| ------------------- | --------------- |
+| Language            | Python          |
+| Deep Learning       | PyTorch         |
+| Computer Vision     | Torchvision     |
+| Numerical Computing | NumPy           |
+| Visualization       | Matplotlib      |
+| Model               | U-Net           |
+| Dataset             | Oxford-IIIT Pet |
+
+---
 
 ## Project Structure
 
@@ -132,54 +227,72 @@ Additional examples focus on low-Dice predictions for error analysis.
 deep-image-segmentation-unet/
 │
 ├── README.md
+├── LICENSE
+├── requirements.txt
+│
 ├── notebook/
 │   └── segmentation.ipynb
-│
-├── results/
-│   ├── predictions.png
-│   └── error_analysis.png
 │
 ├── src/
 │   ├── dataset.py
 │   ├── model.py
 │   └── evaluate.py
 │
-├── requirements.txt
-└── .gitignore
+└── results/
+    ├── predictions.png
+    └── error_analysis.png
 ```
+
+---
 
 ## Reproducibility
 
-The experiments were developed using PyTorch and can be reproduced by installing the required dependencies and running the provided notebook.
+Clone the repository and install the required dependencies:
 
 ```bash
+git clone https://github.com/your-username/deep-image-segmentation-unet.git
+cd deep-image-segmentation-unet
 pip install -r requirements.txt
 ```
 
-The notebook contains the complete data preparation, model implementation, training, evaluation, and visualization workflow.
+The complete experimental workflow is available in the Jupyter notebook.
+
+---
 
 ## Key Takeaways
 
-This project provided practical experience with:
+This project demonstrates practical experience with:
 
 * Semantic image segmentation
-* U-Net architecture
-* Encoder-decoder networks
+* U-Net architecture design
+* Encoder-decoder CNNs
 * Skip connections
-* BCE and Dice-based objectives
+* Segmentation-specific loss functions
 * Data augmentation
 * Dice and IoU evaluation
+* Quantitative model comparison
 * Qualitative error analysis
-* PyTorch model implementation and experimentation
+* PyTorch implementation
 
-## Future Improvements
+---
 
-Potential extensions include:
+## Future Work
 
+Possible extensions include:
+
+* Transfer-learning-based segmentation
 * Stronger geometric and photometric augmentation
-* Transfer-learning-based segmentation models
-* Dice + BCE weighting experiments
+* Weighted BCE + Dice objectives
 * Learning-rate scheduling
-* Early stopping and checkpoint selection
-* More extensive evaluation across different object categories
+* Early stopping and model checkpointing
 * Comparison with modern segmentation architectures
+* Evaluation across different object categories
+
+---
+
+## Author
+
+**Meriem Tafraoui**
+
+AI Engineering Student
+Computer Vision • Deep Learning • Artificial Intelligence
