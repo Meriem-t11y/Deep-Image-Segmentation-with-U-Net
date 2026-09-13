@@ -57,8 +57,7 @@ Images were resized using bilinear interpolation, while segmentation masks were 
 
 The segmentation model is a custom **U-Net** implemented in PyTorch.
 
-```text
-                 ```mermaid
+```mermaid
 flowchart TD
     In[Input Image] --> Enc1[Encoder Block 1]
     
@@ -92,7 +91,7 @@ flowchart TD
     style Dec1 fill:#0d9488,stroke:#2dd4bf,color:#fff
     style Dec2 fill:#0d9488,stroke:#2dd4bf,color:#fff
     style Dec3 fill:#0d9488,stroke:#2dd4bf,color:#fff
-```
+
 ```
 
 The network contains:
@@ -116,7 +115,7 @@ The project investigates the effect of different training configurations.
 
 The main segmentation objective combines:
 
-```text
+``` text
 Loss = BCE Loss + Dice Loss
 ```
 
